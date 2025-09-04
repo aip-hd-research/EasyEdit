@@ -19,4 +19,6 @@ delta.txt
 **/temp/
 **/*_test_reps*
 *test_reps
-*test_reps.*
+*test_reps.*# pixi environments
+.pixi/*
+!.pixi/config.toml
