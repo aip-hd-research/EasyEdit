@@ -18,6 +18,7 @@ from ..util import nethook
 from ..util.hparams import HyperParams
 from ..util.alg_dict import *
 from ..evaluate.evaluate_utils import test_generation_quality
+from huggingface.transcoder_adapter import TranscoderAdapter
 
 logging.basicConfig(format = '%(asctime)s - %(levelname)s - %(name)s -   %(message)s',
                     datefmt = '%m/%d/%Y %H:%M:%S',
@@ -136,6 +137,19 @@ class BaseEditor:
                 self.tok.padding_side = 'right'
         else:
             self.model, self.tok = self.model_name
+
+        if hparams.transcoder_path:
+            assert len(hparams.layers) == 1, "TransCoders are only compatible with single layer edits" 
+            layer = hparams.layers[0]
+            adapter = TranscoderAdapter.load(hparams.transcoder_path)
+            if hasattr(self.model.base_model, "layers"):
+                device = next(self.model.base_model.layers[layer].mlp.parameters()).device
+                self.model.base_model.layers[layer].mlp = adapter.to(self.model.dtype).to(device)
+            elif hasattr(self.model.transformer, "h"):
+                device = next(self.model.transformer.h[layer].mlp.parameters()).device
+                self.model.transformer.h[layer].mlp = adapter.to(self.model.dtype).to(device)
+            else:
+                raise NotImplementedError
 
         if hparams.model_parallel: 
             hparams.device = str(self.model.device).split(":")[1]

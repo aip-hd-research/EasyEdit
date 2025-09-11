@@ -7,45 +7,57 @@ version = "0.1.0"
 build-backend = "hatchling.build"
 requires = ["hatchling"]
 
+[tool.hatch.build.targets.sdist]
+ignore-vcs = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["easyeditor"]
+
 [tool.pixi.workspace]
 channels = ["conda-forge"]
 platforms = ["linux-64"]
 
+[tool.pixi.system-requirements]
+cuda = "12"
+
 [tool.pixi.dependencies]
 python = ">=3.9.7"
+datasets= "3.*"
+einops= "*"
+gpustat= "*"
+hydra-core= "*"
+higher= "*"
+importlib-metadata= "*"
+matplotlib= "*"
+nltk= "*"
+numpy= "*"
+omegaconf= "*"
+pandas= "*"
+PyYAML= "*"
+scikit-learn= "*"
+scipy= "*"
+sentence-transformers= "*"
+tokenizers= "*"
+tqdm= "*"
+transformers= "4.46.*"
+openai= "1.57.*"
+peft= "0.7.*"
+timm= "*"
+iopath= "*"
+opencv= "*"
+fairscale= "*"
+av= "*"
+qwen-vl-utils= "*"
+sentencepiece= "*"
+rouge = "*"
+wandb = "*"
+jaxtyping = "*"
+pytorch-gpu = "2.7.*"
 
 [tool.pixi.pypi-dependencies]
 easyedit = { path = ".", editable = true }
-datasets= ">2.14"
-einops= "==0.4.0"
-gpustat= "==1.1"
-hydra-core= "==1.1.1"
-higher= "==0.2.1"
-importlib-metadata= "==6.3.0"
-matplotlib= "==3.5.1"
-nltk= "==3.6.5"
-numpy= "==1.22.1"
-omegaconf= "==2.1.1"
-pandas= "==1.4.0"
-PyYAML= "==6.0"
-scikit-learn= "==1.0.2"
-scipy= "==1.7.3"
-sentence-transformers= "==3.2.1"
-tokenizers= "==0.20.3"
-torch= "==2.0.1"
-tqdm= "==4.62.3"
-transformers= "==4.46.2"
-openai= "==1.57.0"
-peft= "==0.7.1"
-timm= "==0.9.7"
-iopath= "==0.1.10"
-opencv-python= "==4.8.0.76"
-fairscale= "==0.4.13"
-av= "==14.2.0"
-qwen_vl_utils= "==0.0.10"
-zhipuai= "==2.1.5.20250415"
-sentencepiece= "==0.2.0"
-rouge = "*"
-
+zhipuai = "==2.1.5.20250415"
+transcoder_circuits = {git = "https://github.com/aip-hd-research/transcoder_circuits.git"}
+transformer-lens = {git = "https://github.com/aip-hd-research/TransformerLens.git"}
 
 [tool.pixi.tasks]
