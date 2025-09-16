@@ -472,7 +472,6 @@ class SecondMoment(Stat):
     'covariance-like' matrix is needed, and when the whole matrix fits
     in the GPU.
     """
-
     def __init__(self, split_batch=True, state=None):
         if state is not None:
             return super().__init__(state)
@@ -488,16 +487,21 @@ class SecondMoment(Stat):
         if self.count == 0:
             self.mom2 = a.new(a.shape[1], a.shape[1]).zero_()
         batch_count = a.shape[0]
-        # Update the covariance using the batch deviation
+        
         self.count += batch_count
-        self.mom2 += a.t().mm(a)
+        # Update the covariance using the batch deviation
+        # incremental averaging (https://math.stackexchange.com/questions/106700/incremental-averaging)
+        batch_mom2 = a.t().mm(a)
+        batch_mom2 -= self.mom2
+        batch_mom2 /= self.count
+        self.mom2 += batch_mom2
 
     def to_(self, device):
         if self.mom2 is not None:
             self.mom2 = self.mom2.to(device)
 
     def moment(self):
-        return self.mom2 / self.count
+        return self.mom2
 
     def state_dict(self):
         return dict(

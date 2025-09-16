@@ -12,6 +12,7 @@ from .malmen import *
 from .dinm import *
 from .wise import *
 from .r_rome import *
+from .e_rome import *
 from .qlora import *
 from .lora import *
 from .dpo import *

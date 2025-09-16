@@ -1,6 +1,6 @@
-from easyeditor import ROMEHyperParams, BaseEditor
+from easyeditor import E_ROMEHyperParams, BaseEditor
 
-hparams = ROMEHyperParams.from_hparams('../hparams/ROME/llama-2-7b-hf.yaml')
+hparams = E_ROMEHyperParams.from_hparams('../hparams/ROME/llama-2-7b-hf.yaml')
 
 prompts = ['Ray Charles, the',
             'Grant Hill is a professional',
