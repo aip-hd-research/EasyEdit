@@ -9,51 +9,8 @@ from ..rome import repr_tools
 from ...util.globals import *
 
 from .layer_stats import layer_stats
+from .compute_mom2_inv import get_inv_mom2
 from .e_rome_hparams import E_ROMEHyperParams
-
-# Cache variables
-inv_mom2_cache = {}
-
-
-def get_inv_cov(
-    model: AutoModelForCausalLM,
-    tok: AutoTokenizer,
-    layer_name: str,
-    mom2_dataset: str,
-    mom2_n_samples: str,
-    mom2_dtype: str,
-    hparams=None,
-) -> torch.Tensor:
-    """
-    Retrieves covariance statistics, then computes the algebraic inverse.
-    Caches result for future use.
-    """
-
-    global inv_mom2_cache
-
-    model_name = model.config._name_or_path.replace("/", "_")
-    key = (model_name, layer_name)
-
-    if key not in inv_mom2_cache:
-        print(
-            f"Retrieving inverse covariance statistics for {model_name} @ {layer_name}. "
-            f"The result will be cached to avoid repetitive computation."
-        )
-        stat = layer_stats(
-            model,
-            tok,
-            layer_name,
-            hparams.stats_dir,
-            mom2_dataset,
-            to_collect=["mom2"],
-            sample_size=mom2_n_samples,
-            precision=mom2_dtype,
-        )
-        inv_mom2_cache[key] = torch.inverse(
-            stat.mom2.moment().to(f"cuda:{hparams.device}")
-        ).float()  # Cast back to float32
-
-    return inv_mom2_cache[key]
 
 
 def compute_u(
@@ -121,16 +78,31 @@ def compute_u(
 
     # Apply inverse second moment adjustment
     u = cur_repr
+
     if hparams.mom2_adjustment:
-        u = get_inv_cov(
+        u = get_inv_mom2(
             model,
             tok,
             hparams.rewrite_module_tmp.format(layer),
             hparams.mom2_dataset,
             hparams.mom2_n_samples,
             hparams.mom2_dtype,
-            hparams=hparams,
-        ) @ u.unsqueeze(1)
-        u = u.squeeze()
+            stats_dir=hparams.stats_dir,
+        )
 
-    return u / u.norm()
+        old_dtype = cur_repr.dtype
+        old_device = cur_repr.device
+        u = u @ cur_repr.unsqueeze(1).to(u.device, dtype=u.dtype)
+        u = u.squeeze()
+        u = u / u.norm()
+        sparsity_before = ((u != 0).sum() / u.nelement()).item()
+        u = u.to(old_device, dtype=old_dtype)
+        sparsity_after = ((u != 0).sum() / u.nelement()).item()
+        assert sparsity_after >= 0.9 * sparsity_before, (
+            "Dtype conversion dropped to many nonzero values."
+        )
+        assert not u.isnan().any() and not u.isinf().any(), (
+            "Aberrant behaviour detected. Check dtypes."
+        )
+
+    return u

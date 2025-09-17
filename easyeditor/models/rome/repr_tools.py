@@ -56,8 +56,13 @@ def get_words_idxs_in_templates(
     for i, context in enumerate(context_templates):
         prefix, suffix = context.split("{}")
         prefix_len = len(tok.encode(prefix))
-        prompt_len = len(tok.encode(prefix + words[i]))
-        input_len = len(tok.encode(prefix + words[i] + suffix))
+        prompt = tok.encode(prefix + words[i])
+        prompt_len = len(prompt)
+        input = tok.encode(prefix + words[i] + suffix)
+        input_len = len(input)
+
+        assert (prompt == input[:len(prompt)]).all(), "Alert, prompt no true prefix of input. This likely indicates inconsistent whitespace tokenization at the subject token." 
+
         prefixes_len.append(prefix_len)
         words_len.append(prompt_len - prefix_len)
         suffixes_len.append(input_len - prompt_len)
