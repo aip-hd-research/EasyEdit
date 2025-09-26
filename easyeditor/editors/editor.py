@@ -138,9 +138,8 @@ class BaseEditor:
         else:
             self.model, self.tok = self.model_name
 
-        if hparams.transcoder_path:
-            assert len(hparams.layers) == 1, "TransCoders are only compatible with single layer edits" 
-            layer = hparams.layers[0]
+        if hparams.transcoder_path: 
+            layer = hparams.layer
             adapter = TranscoderAdapter.load(hparams.transcoder_path)
             if hasattr(self.model.base_model, "layers"):
                 device = next(self.model.base_model.layers[layer].mlp.parameters()).device

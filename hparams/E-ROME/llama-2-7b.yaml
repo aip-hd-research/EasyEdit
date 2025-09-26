@@ -1,0 +1,26 @@
+alg_name: "E-ROME"
+model_name: "meta-llama/Llama-2-7b-hf"
+transcoder_path: "/nfs/data/shared/natural_language_transcoders/ofmjb6d4/final_sparse_autoencoder_Llama-2-7b_blocks.19.ln2.hook_normalized_16384.pt"
+stats_dir: "/nfs/data/shared/ROME_Cache/stats"
+device: 0
+layer: 19
+fact_token: "subject_last"
+v_num_grad_steps: 50
+v_lr: 5e-1
+v_weight_decay: 0.05
+clamp_norm_factor: 64
+kl_factor: 0.0625
+mom2_adjustment: true
+context_template_length_params: [[5, 10], [10, 10]]
+rewrite_module_tmp: "model.layers.{}.mlp.down_proj"
+layer_module_tmp: "model.layers.{}"
+mlp_module_tmp: "model.layers.{}.mlp"
+attn_module_tmp: "model.layers.{}.self_attn"
+ln_f_module: "model.norm"
+lm_head_module: "lm_head"
+mom2_dataset: "wikipedia"
+mom2_n_samples: 100
+mom2_dtype: "float32"
+model_parallel: false
+fp16: true
+

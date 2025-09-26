@@ -12,7 +12,6 @@ class ROMEHyperParams(HyperParams):
     fact_token: str
     v_num_grad_steps: int
     v_lr: float
-    v_loss_layer: int
     v_weight_decay: float
     clamp_norm_factor: float
     kl_factor: float
@@ -34,9 +33,10 @@ class ROMEHyperParams(HyperParams):
     alg_name: str
     device: int
     model_name: str
-    transcoder_path: str
     stats_dir: str
-
+    
+    transcoder_path: str = "" 
+    v_loss_layer: int = 0 
     max_length: int = 40
     model_parallel: bool = False
     fp16: bool = False

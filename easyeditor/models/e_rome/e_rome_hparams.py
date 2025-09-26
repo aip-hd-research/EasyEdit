@@ -1,24 +1,27 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import List
 import yaml
+from enum import Enum
 
 from ...util.hparams import HyperParams
 
+class KeyMode(Enum):
+    NO_PREFIX = 0
+    RANDOM_PREFIX = 1
+    SEMANTIC_INTERSECTION = 2 
 
 @dataclass
 class E_ROMEHyperParams(HyperParams):
     # Method
-    layers: List[int]
+    layer: int
     fact_token: str
     v_num_grad_steps: int
     v_lr: float
-    v_loss_layer: int
     v_weight_decay: float
     clamp_norm_factor: float
     kl_factor: float
     mom2_adjustment: bool
-    context_template_length_params: List[List[int]]
-
+    
     # Module templates
     rewrite_module_tmp: str
     layer_module_tmp: str
@@ -41,12 +44,10 @@ class E_ROMEHyperParams(HyperParams):
     model_parallel: bool = False
     fp16: bool = False
 
-    # compute key vector from prompt only
-    enable_prompt_keys: bool = False
-    # compute key vector as avg over random prefixes + prompt
-    enable_random_prefix_keys: bool = True
-    # Original ROME implementation overrides other options, uses both computations in the update equation
-    original_implementation: bool = False
+    # Key calculation
+    
+    context_template_length_params: List[List[int]] = field(default_factory=lambda: [[5, 10], [10, 10]])
+    key_mode: KeyMode = KeyMode.RANDOM_PREFIX 
 
     @classmethod
     def from_hparams(cls, hparams_name_or_path: str):
@@ -56,9 +57,13 @@ class E_ROMEHyperParams(HyperParams):
         with open(hparams_name_or_path, "r") as stream:
             config = yaml.safe_load(stream)
             config = super().construct_float_from_scientific_notation(config)
+        if config["alg_name"] != "E-ROME":
+            raise ValueError(f"E_ROMEHyperParams can not load from {hparams_name_or_path}, alg_name is {config['alg_name']}")
+        if "key_mode" in config:
+            config["key_mode"] = KeyMode[config["key_mode"]]
 
-        assert (config and config["alg_name"] == "E-ROME") or print(
-            f'E_ROMEHyperParams can not load from {hparams_name_or_path}, '
-            f'alg_name is {config["alg_name"]} '
-        )
+        if "key_mode" in config and config["key_mode"] != KeyMode.RANDOM_PREFIX:
+            config["context_template_length_params"] = []
+
+
         return cls(**config)

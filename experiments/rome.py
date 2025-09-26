@@ -1,6 +1,6 @@
 from easyeditor import E_ROMEHyperParams, BaseEditor
 
-hparams = E_ROMEHyperParams.from_hparams('../hparams/ROME/llama-2-7b-hf.yaml')
+hparams = E_ROMEHyperParams.from_hparams('../hparams/E-ROME/llama-2-7b.yaml')
 
 prompts = ['Ray Charles, the',
             'Grant Hill is a professional',
@@ -16,7 +16,7 @@ metrics, edited_model, _ = editor.edit(
     ground_truth=ground_truth,
     target_new=target_new,
     subject=subject,
-    sequential_edit=True
+    sequential_edit=False
 )
 
 print(metrics)
