@@ -32,7 +32,12 @@ def compute_key(
             hparams,
         )
     if hparams.key_mode == KeyMode.SEMANTIC_INTERSECTION:
-        raise NotImplementedError 
+        return compute_semantic_intersection_key(
+            model,
+            tok,
+            request,
+            hparams,
+        )
 
  
 def compute_random_prefix_key(
@@ -63,6 +68,35 @@ def compute_random_prefix_key(
            track="in",
         ).mean(0)
 
+def compute_semantic_intersection_key(
+    model: AutoModelForCausalLM,
+    tok: AutoTokenizer,
+    request: Dict,
+    hparams: E_ROMEHyperParams,       
+    ) -> torch.Tensor:
+
+    keys = repr_tools.get_reprs_at_idxs(
+        model=model,
+        tok=tok,
+        contexts=request["key_prompts"],
+        idxs=[[-1] for prompt in request["key_prompts"]], 
+        layer=hparams.layer,
+        module_template=hparams.rewrite_module_tmp,
+        track="in",
+    )
+
+    intersection = (keys != 0).prod(dim=0)
+
+    print(f"Key shape: {intersection.shape}")
+    print(f"Intersection sparsity: {(intersection != 0).sum()}")
+
+    mean = keys.mean(dim=0)
+
+    assert mean.shape == intersection.shape
+    print(f"Mean sparsity: {(mean != 0).sum()}")
+
+    return intersection * mean
 
 
 
+ 

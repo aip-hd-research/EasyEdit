@@ -194,6 +194,7 @@ class BaseEditor:
 
         if "requests" in kwargs.keys():
             requests = kwargs["requests"]
+            del kwargs["requests"]
         else:
             requests = _prepare_requests(prompts, target_new, ground_truth, target_neg, rephrase_prompts, locality_inputs, portability_inputs, **kwargs)
 
